@@ -11,19 +11,19 @@ Comunicaciones
 --------------
 
 * **PORTD0 y PORTD1 (RX y TX):** Terminal serie para *debug* con RS-232 y conxión *Bluetooth*.
+* **PORTD5 (T1):** Modo AT del *Bluetooth*.
 
 Asociados a Timers y PWM
 ------------------------
 
 * **PORTD2 (INT0):** Velocimetro, sensor efecto hall optoacoplado. (*Sujeto a modificaciones*)
 * **PORTD3 (INT1):** Tacómetro.
-* **PORTD4 (T0):** Puenteado con el velocimetro. (*Sujeto a modificaciones*)
 
 Alimentación
 ------------
 
-* **PORTC5 (ADC5):** Tensión de la batería(?).
-* **PORTD6 (AIN0):** Led indicador (?).
+* **PORTC5 (ADC5):** Tensión de la batería.
+* **PORTD6 (AIN0):** Led indicador.
 * **PORTD7 (AIN1):** Rele de activación de alimentación.
 
 Alarma
@@ -36,7 +36,7 @@ Alarma
 Luminaria
 ---------
 
-* **PORTB2 (OC1B):** Control de luces PWM (?).
+* **PORTB2 (OC1B):** Control de luces PWM.
 * **PORTC3 (ADC3):** Sensor LDR.
 
 Bomba de agua
@@ -55,5 +55,4 @@ Pines no disponibles/no implementados (aún)
 -------------------------------------------
 
 * **PORTC0 (ADC0)** (*Posible implementación*: Sensar tanque de combustible)
-* **PORTD5 (T1)** (*Counter/Timer*)
-
+* **PORTD4 (T0)**
