@@ -24,13 +24,13 @@
  * 
  ******************************************************************************/
 /**
- * @file imos_api.cpp
+ * @file imos_hardwareapi.cpp
  * @author Matías S. Ávalos <msavalos@gmail.com>
  * @version v0.1
  * @date 06/01/2017 (dd/mm/yyyy)
  * @brief Contenedor de la API de IMOS.
  */
-#include "imos_api.h"
+#include "imos_hardwareapi.h"
 #include "systemclock.h"
 #include "pwm.h"
 #include "usart.h"
@@ -38,112 +38,112 @@
 #include "eeprom.h"
 #include "extinterrupts.h"
 
-imos_api::config_t* imos_api::Imos_api::getConfiguracion()
+imos::config_t* imos::HardwareAPI::getConfiguracion()
 {
     return &(this->configuracion);
 }
 
-bool imos_api::Imos_api::isEepromBusy(void)
+bool imos::HardwareAPI::isEepromBusy(void)
 {
     return (EEPROM_Busy())? true : false;
 }
 
-void imos_api::Imos_api::saveConfiguracion()
+void imos::HardwareAPI::saveConfiguracion()
 {
-    EEPROM_WriteData(this->configAddrs,(void*) &(this->configuracion),sizeof(imos_api::config_t));
+    EEPROM_WriteData(this->configAddrs,(void*) &(this->configuracion),sizeof(imos::config_t));
 }
 
-uint16_t imos_api::Imos_api::readBateria()
+uint16_t imos::HardwareAPI::readBateria()
 {
     return ADC_Read(this->adcBateria);
 }
 
-void imos_api::Imos_api::setPower(uint8_t on_off)
+void imos::HardwareAPI::setPower(uint8_t on_off)
 {
     digitalWrite(this->powerRelay,on_off);
 }
 
-void imos_api::Imos_api::setBocina(uint8_t on_off)
+void imos::HardwareAPI::setBocina(uint8_t on_off)
 {
     digitalWrite(this->pinBocina,on_off);
 }
 
-uint16_t imos_api::Imos_api::readAcelerometro()
+uint16_t imos::HardwareAPI::readAcelerometro()
 {
     return ADC_Read(this->adcAcelerometro);
 }
 
-uint8_t imos_api::Imos_api::readAlarmaIn()
+uint8_t imos::HardwareAPI::readAlarmaIn()
 {
     return digitalRead(this->pinAlarmaIn);
 }
 
-uint16_t imos_api::Imos_api::readLDR()
+uint16_t imos::HardwareAPI::readLDR()
 {
     return ADC_Read(this->adcLDR);
 }
 
-void imos_api::Imos_api::setLucesValue(uint8_t value)
+void imos::HardwareAPI::setLucesValue(uint8_t value)
 {
     _setHFPWM(value);
 }
 
-uint16_t imos_api::Imos_api::readTempAmb()
+uint16_t imos::HardwareAPI::readTempAmb()
 {
     return ADC_Read(this->adcTempAmb);
 }
 
-uint16_t imos_api::Imos_api::readTempMotor()
+uint16_t imos::HardwareAPI::readTempMotor()
 {
     return ADC_Read(this->adcTempMotor);
 }
 
-void imos_api::Imos_api::setBluetoothAT(uint8_t on_off)
+void imos::HardwareAPI::setBluetoothAT(uint8_t on_off)
 {
     digitalWrite(this->pinBluetoothMode,on_off);
 }
 
-void imos_api::Imos_api::bluetoothSendCmd(const char *strCmd)
+void imos::HardwareAPI::bluetoothSendCmd(const char *strCmd)
 {
     USART_SendStr(strCmd);
 }
 
-void imos_api::Imos_api::bluetoothSendByte(uint8_t data)
+void imos::HardwareAPI::bluetoothSendByte(uint8_t data)
 {
     USART_PushTx(data);
 }
 
-int imos_api::Imos_api::bluetoothGetByte(void)
+int imos::HardwareAPI::bluetoothGetByte(void)
 {
     return USART_PopRx();
 }
 
-uint16_t imos_api::Imos_api::readCombustible()
+uint16_t imos::HardwareAPI::readCombustible()
 {
     return ADC_Read(this->adcCombustible);
 }
 
-void imos_api::Imos_api::setBombaAguaValue(uint8_t value)
+void imos::HardwareAPI::setBombaAguaValue(uint8_t value)
 {
     _setLFPWM(value);
 }
 
-void imos_api::Imos_api::setInterrupcion(uint8_t nInt, void (*rutina)(void))
+void imos::HardwareAPI::setInterrupcion(uint8_t nInt, void (*rutina)(void))
 {
     attachIntFunction(nInt,rutina);
 }
 
-uint32_t imos_api::Imos_api::getMillis()
+uint32_t imos::HardwareAPI::getMillis()
 {
     return ::ticks_ms;
 }
 
-uint16_t imos_api::Imos_api::getSeconds()
+uint16_t imos::HardwareAPI::getSeconds()
 {
     return ::ticks_s;
 }
 
-void imos_api::Imos_api::toSleep()
+void imos::HardwareAPI::toSleep()
 {
     // Cosas antes de ir a dormir...
     ADC_Off();
@@ -152,7 +152,7 @@ void imos_api::Imos_api::toSleep()
 }
 
 
-imos_api::Imos_api::Imos_api()
+imos::HardwareAPI::HardwareAPI()
 {
     // Entradas y salidas digitales:
     pinMode(this->powerRelay,OUTPUT);
@@ -179,17 +179,17 @@ imos_api::Imos_api::Imos_api()
     sei();
 }
 
-imos_api::Imos_api* imos_api::Imos_api::ptrAPI = NULL;
+imos::HardwareAPI* imos::HardwareAPI::ptrAPI = NULL;
 
-imos_api::Imos_api* imos_api::Imos_api::getInstance()
+imos::HardwareAPI* imos::HardwareAPI::getInstance()
 {
     if(ptrAPI == NULL)
     {
-        ptrAPI = new Imos_api();
+        ptrAPI = new HardwareAPI();
     }
     return ptrAPI;
 }
 
-imos_api::Imos_api::~Imos_api()
+imos::HardwareAPI::~HardwareAPI()
 {
 }

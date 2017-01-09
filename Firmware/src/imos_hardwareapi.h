@@ -24,7 +24,7 @@
  * 
  ******************************************************************************/
 /**
- * @file imos_api.h
+ * @file imos_hardwareapi.h
  * @author Matías S. Ávalos <msavalos@gmail.com>
  * @version v0.1
  * @date 06/01/2017 (dd/mm/yyyy)
@@ -96,7 +96,7 @@
  * utiliza C++ y programación orientada a objetos.
  * 
  */
-namespace imos_api
+namespace imos
 {
     
 /**
@@ -107,7 +107,7 @@ namespace imos_api
  *  Estos datos son los de configuración del usuario, y se almacenan
  * en la EEPROM.
  *  
- * @ingroup E²PROM
+ * @ingroup CONFIGURATION
  */
 typedef struct configStruct
 {
@@ -118,7 +118,7 @@ typedef struct configStruct
 
     
 /**
- * @class Imos_api
+ * @class HardwareAPI
  * @brief Clase contenedora de la API de IMOS.
  * 
  * @details
@@ -132,7 +132,7 @@ typedef struct configStruct
  * 
  * @ingroup IMPLEMENTATION
  */
-class Imos_api
+class HardwareAPI
 {   
     
     /** @addtogroup CONFIGURATION
@@ -147,7 +147,7 @@ class Imos_api
          * @brief Verifica si la EEPROM todavía está escribiendo datos.
          * @return true si la E²PROM está ocupada. false si no.
          */
-        inline bool isEepromBusy(void);
+        bool isEepromBusy(void);
         /**
          * @brief Obtiene las configuraciones del sistema de la EEPROM.
          * @return Un puntero a imos_api::config_t donde están las configuraciones
@@ -164,7 +164,7 @@ class Imos_api
          * 
          * @see getConfiguracion()
          */
-        inline void saveConfiguracion();
+        void saveConfiguracion();
     /**
      *@}
      */
@@ -183,13 +183,13 @@ class Imos_api
          * @brief Verifica el estado de la alimentación de la batería.
          * @return Voltage de la batería.
          */
-        inline uint16_t readBateria();
+        uint16_t readBateria();
         /**
          * @brief Activa o desactiva el relé que maneja las alimentaciones de los periféricos.
          * @param on_off 1 cierra el relé que alimenta el resto del circuito.
          * 0 apaga las alimentaciones del circuito.
          */
-        inline void setPower(uint8_t on_off);
+        void setPower(uint8_t on_off);
     /**
      *@}
      */
@@ -207,18 +207,18 @@ class Imos_api
          * @brief Enciende o apaga la bocina y las luces de la moto.
          * @param on_off 1 prende la bocina, 0 la apaga.
          */
-        inline void setBocina(uint8_t on_off);
+        void setBocina(uint8_t on_off);
         /**
          * @brief Lee el valor del acelerómetro para saber si alguien movió la moto.
          * @return El valor promedio del acelerómetro de las últimas 8 lecturas.
          * @see ADC_Read()
          */
-        inline uint16_t readAcelerometro();
+        uint16_t readAcelerometro();
         /**
          * @brief Entrada para activar/desactivar la alarma mecánicamente.
          * @return Valor digital para saber si se cerró el contacto o no para la alarma.
          */
-        inline uint8_t readAlarmaIn();
+        uint8_t readAlarmaIn();
     /**
      *@}
      */
@@ -235,7 +235,7 @@ class Imos_api
          * @return Valor promedio de las últimas 8 lecturas del LDR.
          * @see ADC_Read()
          */
-        inline uint16_t readLDR();
+        uint16_t readLDR();
         /**
          * @brief Enciende las luces con una determinada intensidad.
          * @param value Valor entre [0~255] para determinar la intensidad de las luces.
@@ -260,13 +260,13 @@ class Imos_api
          * @return Valor del sensor de la temperatura ambiente.
          * @see ADC_Read()
          */
-        inline uint16_t readTempAmb();
+        uint16_t readTempAmb();
         /**
          * @brief Lectura de la temperatura del motor.
          * @return Valor del sensor de la temperatura del motor. 
          * @see ADC_Read()
          */
-        inline uint16_t readTempMotor();
+        uint16_t readTempMotor();
     /**
      *@}
      */
@@ -282,25 +282,25 @@ class Imos_api
          * @brief Pone al módulo bluetooth en modo AT.
          * @param on_off 1 Modo AT, 0 modo de cómunicación entre dispositivos.
          */
-        inline void setBluetoothAT(uint8_t on_off);
+        void setBluetoothAT(uint8_t on_off);
         /**
          * @brief Enviar un comando en modo AT o un String en modo comunicación.
          * @param strCmd Comando AT o String a enviar por el módulo bluetooth.
          * @see @ref USART, USART_SendStr()
          */
-        inline void bluetoothSendCmd(const char *strCmd);
+        void bluetoothSendCmd(const char *strCmd);
         /**
          * @brief Envía un dato por la comunicación serie bluetooth.
          * @param data byte a ser enviado por el módulo bluetooth.
          * @see @ref USART, USART_PushTx()
          */
-        inline void bluetoothSendByte(uint8_t data);
+        void bluetoothSendByte(uint8_t data);
         /**
          * @brief Obtiene un dato del buffer de recepción.
          * @return El primer dato del buffer de recepción. @b -1 si no hay datos en el buffer.
          * @see @ref USART, USART_PopRx()
          */
-        inline int bluetoothGetByte(void);
+        int bluetoothGetByte(void);
     /**
      *@}
      */
@@ -317,7 +317,7 @@ class Imos_api
          * @return Valor de la presión en el tanque de combustible.
          * @see @ref ADC, ADC_Read()
          */
-        inline uint16_t readCombustible();
+        uint16_t readCombustible();
     /**
      *@}
      */
@@ -348,7 +348,7 @@ class Imos_api
          * @param rutina Puntero a la rutina de interrupción que debe ejecutarse.
          * @see @ref Interrupts
          */
-        inline void setInterrupcion(uint8_t nInt, void (*rutina)(void));
+        void setInterrupcion(uint8_t nInt, void (*rutina)(void));
     /**
      *@}
      */
@@ -389,7 +389,7 @@ class Imos_api
 
     // Constructores & destructores
     private:
-        static Imos_api* ptrAPI;        //!< @brief Puntero estático para aplicar patrón @b singleton.
+        static HardwareAPI* ptrAPI;        //!< @brief Puntero estático para aplicar patrón @b singleton.
         /**
          * @brief El constructor de la clase.
          * 
@@ -399,14 +399,14 @@ class Imos_api
          * 
          * @see getInstance()
          */
-        Imos_api();
+        HardwareAPI();
     public:
         /**
          * @brief Obtiene la única instancia posible de la API.
          * @return Única referencia posible a la API.
          * @see ptrAPI
          */
-        static Imos_api* getInstance();
+        static HardwareAPI* getInstance();
         /**
          * @brief Destructor de la clase.
          * 
@@ -414,9 +414,9 @@ class Imos_api
          *  Siendo un proyecto embebido @b NUNCA debería ejecutarse el destructor de la
          * clase que contiene la API.
          */
-        virtual ~Imos_api();
+        virtual ~HardwareAPI();
 
-}; // Imos_api class
+}; // HardwareAPI class
 
 } // namespace imos_api
 
