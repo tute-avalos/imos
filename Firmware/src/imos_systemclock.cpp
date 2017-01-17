@@ -28,9 +28,26 @@
  * @author Matías S. Ávalos <msavalos@gmail.com>
  * @version v0.1
  * @date 06/01/2017 (dd/mm/yyyy)
- * @brief 
+ * @brief Se proporciona la funcionalidad de ejecutar rutinas cada una 
+ * x cantidad de ms.
+ * 
+ * @details
+ *  En la clase SystemClock se manejan los eventos temporales tipo event_t,
+ * que estan compuestas por un tick de tiempo, que es el invervalo en el 
+ * cual se ejecuta la rutina asociada con el puntero routine. Para ello
+ * utiliza una lista simplemente enlazada para agregar y eliminar los mismos.
+ *
+ *  Cada vez que se crea un evento, se genera un ID único para el mismo,
+ * con este es posible luego modificar el evento o eliminarlo según la
+ * necesidad.
+ * 
+ *  De esta manera se puede hacer una programación basada en tiempos, es decir,
+ * ejecutando rutinas cada un intervalo fijo de tiempo, lo cual da una
+ * gran flexibilidad y es más tecnificado que hacer una "maquina de timers".
+ * 
+ * @todo corregir la variable que otorga IDs para que realmente sean únicos...
+ * 
  */
-
 #include "imos_systemclock.h"
 
 void imos::SystemClock::refresh()
