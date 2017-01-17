@@ -28,7 +28,25 @@
  * @author Matías S. Ávalos <msavalos@gmail.com>
  * @version v0.1
  * @date 06/01/2017 (dd/mm/yyyy)
- * @brief 
+ * @brief Se proporciona la funcionalidad de ejecutar rutinas cada una 
+ * x cantidad de ms.
+ * 
+ * @details
+ *  En la clase SystemClock se manejan los eventos temporales tipo event_t,
+ * que estan compuestas por un tick de tiempo, que es el invervalo en el 
+ * cual se ejecuta la rutina asociada con el puntero routine. Para ello
+ * utiliza una lista simplemente enlazada para agregar y eliminar los mismos.
+ *
+ *  Cada vez que se crea un evento, se genera un ID único para el mismo,
+ * con este es posible luego modificar el evento o eliminarlo según la
+ * necesidad.
+ * 
+ *  De esta manera se puede hacer una programación basada en tiempos, es decir,
+ * ejecutando rutinas cada un intervalo fijo de tiempo, lo cual da una
+ * gran flexibilidad y es más tecnificado que hacer una "maquina de timers".
+ * 
+ * @todo corregir la variable que otorga IDs para que realmente sean únicos...
+ * 
  */
 /** @defgroup SCHEDULING Scheduler Events
  * @ingroup IMPLEMENTATION
@@ -50,7 +68,7 @@ namespace imos
  *  Los eventos regidos por tiempo se ejecutan en intervalos de 
  * 'ticks' milisegundos. Los eventos tiene una rutina asociada
  * la cual debe ser una función con la siguiente firma: 
- *      @code void rutine(void) @endcode
+ *      @code void routine(void) @endcode
  *  De esta forma, esta rutina se ejecutará cada vez que pase el
  * intervalo de tiempo 'ticks', apartir de que es agregada en la
  * lista de eventos de la clase SystemClock. 
@@ -63,7 +81,7 @@ typedef struct eventNode
     uint8_t id;                     //!< @brief id único del evento.
     uint16_t ticks;                 //!< @brief invervalo de tiempo en que se ejecuta el evento.
     uint32_t lastTick;              //!< @brief último tick en que se ejecutó el evento.
-    void (*rutine)(void);           //!< @brief rutina que se ejecuta cuando lleva el evento.
+    void (*routine)(void);          //!< @brief rutina que se ejecuta cuando lleva el evento.
     struct eventNode *nextEvent;    //!< @brief próximo evento, si hay.
 } event_t;
 
@@ -89,7 +107,7 @@ typedef struct eventNode
 class SystemClock
 {
     private:
-        HardwareAPI* API;                  //!< @brief Puntero a la API de IMOS.
+        HardwareAPI* API;               //!< @brief Puntero a la API de IMOS.
         uint8_t eventsCount = 0;        //!< @brief Cantidad de eventos que coexisten.
         uint8_t eventsIDs = 0;          //!< @brief Generador de IDs de eventos.
         uint32_t msTicks;               //!< @brief Ticks que se leen de ticks_ms.
@@ -135,14 +153,22 @@ class SystemClock
          * manejados por el reloj del sistema. 
          * 
          * @param time Intervalo de tiempo en que se ejecuta la rutina.
-         * @param rutine Rutina que se ejecuta cada vez que se genera el evento.
+         * @param routine Rutina que se ejecuta cada vez que se genera el evento.
          * @return el id del evento generado, o -1 si la lista está completa o no pudo
          * encontrarse memoria que asignar.
          * @see listOfEvents, @ref eventNode
          * @ingroup SCHEDULING
          */
-        int16_t newEvent(uint16_t time, void (*rutine)(void));
-        //bool changeEvent(uint8_t id, uint16_t time, void (*rutine)(void));
+        int16_t newEvent(uint16_t time, void (*routine)(void));
+        /**
+         * @brief Cambia al tiempo y/o rutina asociada al evento con el ID pasado por parámetro
+         * @param id ID del evento a modificar.
+         * @param time Nuevo tiempo para el evento.
+         * @param routine Puntero a la rutina que se debe ejecutar en el evento.
+         * @return true si se pudo modificar el evento, false si no.
+         * @ingroup SCHEDULING
+         */
+        bool changeEvent(uint8_t id, uint16_t time, void (*routine)(void));
         /**
          * @brief Burra el evento con la id pasada por parámetro.
          * @param id ID del evento a eliminar de la lista de eventos.
@@ -162,7 +188,8 @@ class SystemClock
         #endif
     
     // Constructores y destructores:
-    public:
+    private:
+        static SystemClock* ptrSysClk; //!< @brief Puntero estático para aplicar patrón @b singleton.
         /**
          * @brief Inicializa los parámetros para el manejo de eventos.
          * 
@@ -170,10 +197,17 @@ class SystemClock
          *  El contructor inicializa msTicks para tener la referencia del tiempo
          * referente al hardware.
          * 
-         * @param API Una instancia de la API de IMOS, para acceder al hardware relacionado al SysClk.
-         * @see SysClk, ticks_ms, API
+         * @see SysClk, ticks_ms, API, getInstance()
          */
-        SystemClock(HardwareAPI* API);
+        SystemClock();
+    public:
+        /**
+         * @brief Obtiene la única instancia posible de la SystemClock.
+         * @param 
+         * @return Única referencia posible a la SystemClock.
+         * @see ptrSysClk
+         */
+        static SystemClock* getInstance();
         /**
          * @brief Destructor de la clase.
          */

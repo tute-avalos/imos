@@ -49,7 +49,7 @@ void imos::SystemClock::checkEvents(void)
         {
             if((this->msTicks-tmp->lastTick) >= tmp->ticks)
             {
-                tmp->rutine();
+                tmp->routine();
                 tmp->lastTick = this->msTicks;
             }
             tmp = tmp->nextEvent;
@@ -58,10 +58,10 @@ void imos::SystemClock::checkEvents(void)
     lastTick = this->msTicks;
 }
 
-int16_t imos::SystemClock::newEvent(uint16_t time, void (*rutine)(void))
+int16_t imos::SystemClock::newEvent(uint16_t time, void (*routine)(void))
 {
     int16_t result = -1;
-    if(this->eventsCount < MAX_EVENT_COUNT && time)
+    if(this->eventsCount < MAX_EVENT_COUNT && time && routine != NULL)
     {
         imos::event_t* nuevoEvento = new imos::event_t;
         if(nuevoEvento)
@@ -69,9 +69,29 @@ int16_t imos::SystemClock::newEvent(uint16_t time, void (*rutine)(void))
             this->eventsCount++;
             result = nuevoEvento->id = this->eventsIDs++;
             nuevoEvento->ticks = time;
-            nuevoEvento->rutine = rutine;
+            nuevoEvento->routine = routine;
             nuevoEvento->nextEvent = this->listOfEvents;
             this->listOfEvents = nuevoEvento;
+        }
+    }
+    return result;
+}
+
+bool imos::SystemClock::changeEvent(uint8_t id, uint16_t time, void (*routine)(void))
+{
+    bool result = false;
+    imos::event_t* aux = this->listOfEvents;
+    if(time)
+    {
+        while(aux && !result)
+        {
+            if(aux->id == id)
+            {
+                aux->ticks = time;
+                if(routine!=NULL) aux->routine = routine;
+                result = true;
+            }
+            else aux = aux->nextEvent;
         }
     }
     return result;
@@ -123,10 +143,21 @@ void imos::SystemClock::debugListOfEvents(void)
 }
 #endif // __DEBUG__
 
-imos::SystemClock::SystemClock(imos::HardwareAPI* API)
+imos::SystemClock::SystemClock()
 {
-    this->API = API;
+    this->API = imos::HardwareAPI::getInstance();
     this->msTicks = this->API->getMillis();
+}
+
+imos::SystemClock* imos::SystemClock::ptrSysClk = NULL;
+
+imos::SystemClock* imos::SystemClock::getInstance()
+{
+    if(ptrSysClk == NULL)
+    {
+        ptrSysClk = new SystemClock();
+    }
+    return ptrSysClk;
 }
 
 imos::SystemClock::~SystemClock()
