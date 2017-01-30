@@ -45,9 +45,9 @@
  * ejecutando rutinas cada un intervalo fijo de tiempo, lo cual da una
  * gran flexibilidad y es más tecnificado que hacer una "maquina de timers".
  * 
- * @todo corregir la variable que otorga IDs para que realmente sean únicos...
  * 
  */
+#include "imos_hardwareapi.h"
 #include "imos_systemclock.h"
 
 void imos::SystemClock::refresh()
@@ -58,7 +58,8 @@ void imos::SystemClock::refresh()
 void imos::SystemClock::checkEvents(void)
 {
     static uint32_t lastTick = this->msTicks;
-    this->msTicks = this->API->getMillis();
+    static HardwareAPI* API = imos::HardwareAPI::getInstance();
+    this->msTicks = API->getMillis();
     if(this->msTicks != lastTick)
     {
         imos::event_t* tmp = this->listOfEvents;
@@ -66,7 +67,7 @@ void imos::SystemClock::checkEvents(void)
         {
             if((this->msTicks-tmp->lastTick) >= tmp->ticks)
             {
-                tmp->routine();
+                tmp->timedObj->timedExec();
                 tmp->lastTick = this->msTicks;
             }
             tmp = tmp->nextEvent;
@@ -75,18 +76,37 @@ void imos::SystemClock::checkEvents(void)
     lastTick = this->msTicks;
 }
 
-int16_t imos::SystemClock::newEvent(uint16_t time, void (*routine)(void))
+uint8_t imos::SystemClock::getNewID()
+{
+    event_t* aux = this->listOfEvents;
+    this->eventsIDs++;
+    if(aux)
+    {
+        while(aux)
+        {
+            if(aux->id == this->eventsIDs)
+            {
+                this->eventsIDs++;
+                aux = this->listOfEvents;
+            }
+            else aux = aux->nextEvent;
+        }
+    }
+    return this->eventsIDs;
+}
+
+int16_t imos::SystemClock::newEvent(uint16_t time, imos::Timed* timedObj)
 {
     int16_t result = -1;
-    if(this->eventsCount < MAX_EVENT_COUNT && time && routine != NULL)
+    if(this->eventsCount < MAX_EVENT_COUNT && time && timedObj != NULL)
     {
         imos::event_t* nuevoEvento = new imos::event_t;
         if(nuevoEvento)
         {
             this->eventsCount++;
-            result = nuevoEvento->id = this->eventsIDs++;
+            result = nuevoEvento->id = this->getNewID();
             nuevoEvento->ticks = time;
-            nuevoEvento->routine = routine;
+            nuevoEvento->timedObj = timedObj;
             nuevoEvento->nextEvent = this->listOfEvents;
             this->listOfEvents = nuevoEvento;
         }
@@ -94,7 +114,7 @@ int16_t imos::SystemClock::newEvent(uint16_t time, void (*routine)(void))
     return result;
 }
 
-bool imos::SystemClock::changeEvent(uint8_t id, uint16_t time, void (*routine)(void))
+bool imos::SystemClock::changeEvent(uint8_t id, uint16_t time, imos::Timed* timedObj)
 {
     bool result = false;
     imos::event_t* aux = this->listOfEvents;
@@ -105,7 +125,7 @@ bool imos::SystemClock::changeEvent(uint8_t id, uint16_t time, void (*routine)(v
             if(aux->id == id)
             {
                 aux->ticks = time;
-                if(routine!=NULL) aux->routine = routine;
+                if(timedObj!=NULL) aux->timedObj = timedObj;
                 result = true;
             }
             else aux = aux->nextEvent;
@@ -141,29 +161,10 @@ bool imos::SystemClock::delEvent(uint8_t id)
     return result;
 }
 
-#ifdef __DEBUG__
-void imos::SystemClock::debugListOfEvents(void)
-{
-    char s[10];
-    event_t * tmp = this->listOfEvents;
-    if(!tmp) API->bluetoothSendCmd("Nop");
-    while(tmp)
-    {
-        API->bluetoothSendCmd(itoa((uint16_t)tmp,s,16));
-        API->bluetoothSendByte('(');
-        API->bluetoothSendCmd(itoa(tmp->id,s,10));
-        API->bluetoothSendByte(')');
-        API->bluetoothSendCmd(" -> ");
-        tmp = tmp->nextEvent;
-    }
-    API->bluetoothSendCmd("\r\n");
-}
-#endif // __DEBUG__
-
 imos::SystemClock::SystemClock()
 {
-    this->API = imos::HardwareAPI::getInstance();
-    this->msTicks = this->API->getMillis();
+    HardwareAPI* API = imos::HardwareAPI::getInstance();
+    this->msTicks = API->getMillis();
 }
 
 imos::SystemClock* imos::SystemClock::ptrSysClk = NULL;

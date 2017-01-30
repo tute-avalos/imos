@@ -45,6 +45,7 @@
  *        #include <stdlib.h>
  *      @endcode   
  * 
+ * @todo Modificar para que la api sea independiente del micro.
  */
 /** @defgroup API Hardware API
  * 
@@ -83,11 +84,11 @@
 #endif // F_CPU
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#include <avr/sleep.h>
+//#include <avr/sleep.h>
 #include <stdlib.h>
 #include "digitalio.h"
 
-/** @defgroup IMPLEMENTATION
+/** @defgroup IMPLEMENTATION Implementación de Firmware.
  * @brief Implementación de la @ref API del sistema.
  * 
  * @details
