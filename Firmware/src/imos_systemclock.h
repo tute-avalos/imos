@@ -45,7 +45,6 @@
  * ejecutando rutinas cada un intervalo fijo de tiempo, lo cual da una
  * gran flexibilidad y es más tecnificado que hacer una "maquina de timers".
  * 
- * @todo corregir la variable que otorga IDs para que realmente sean únicos...
  * 
  */
 /** @defgroup SCHEDULING Scheduler Events
@@ -54,7 +53,9 @@
 #ifndef __IMOS_SYSCLK__
 #define __IMOS_SYSCLK__
 
-#include "imos_hardwareapi.h"
+#include "imos_timed.h"
+#include <stdint.h>
+#include <stdlib.h>
 
 #define MAX_EVENT_COUNT 20  //!< @brief Cantidad máxima de eventos que pueden estar coexistiendo.
 
@@ -81,7 +82,7 @@ typedef struct eventNode
     uint8_t id;                     //!< @brief id único del evento.
     uint16_t ticks;                 //!< @brief invervalo de tiempo en que se ejecuta el evento.
     uint32_t lastTick;              //!< @brief último tick en que se ejecutó el evento.
-    void (*routine)(void);          //!< @brief rutina que se ejecuta cuando lleva el evento.
+    imos::Timed* timedObj;          //!< @brief Interfaz con método virtual timeExec.
     struct eventNode *nextEvent;    //!< @brief próximo evento, si hay.
 } event_t;
 
@@ -107,7 +108,6 @@ typedef struct eventNode
 class SystemClock
 {
     private:
-        HardwareAPI* API;               //!< @brief Puntero a la API de IMOS.
         uint8_t eventsCount = 0;        //!< @brief Cantidad de eventos que coexisten.
         uint8_t eventsIDs = 0;          //!< @brief Generador de IDs de eventos.
         uint32_t msTicks;               //!< @brief Ticks que se leen de ticks_ms.
@@ -142,7 +142,12 @@ class SystemClock
          * @ingroup SCHEDULING
          */
         void checkEvents(void);
-        
+        /**
+         * @brief Genera un nuevo ID único para los eventos.
+         * @return Un ID para un nuevo evento.
+         * @ingroup SCHEDULING
+         */
+        uint8_t getNewID();
     // Manejadores de eventos:
     public:
         /**
@@ -153,39 +158,30 @@ class SystemClock
          * manejados por el reloj del sistema. 
          * 
          * @param time Intervalo de tiempo en que se ejecuta la rutina.
-         * @param routine Rutina que se ejecuta cada vez que se genera el evento.
+         * @param timedObj Objeto derivado de Timed, con la implementación del método timeExec.
          * @return el id del evento generado, o -1 si la lista está completa o no pudo
          * encontrarse memoria que asignar.
          * @see listOfEvents, @ref eventNode
          * @ingroup SCHEDULING
          */
-        int16_t newEvent(uint16_t time, void (*routine)(void));
+        int16_t newEvent(uint16_t time, imos::Timed* timedObj);
         /**
          * @brief Cambia al tiempo y/o rutina asociada al evento con el ID pasado por parámetro
          * @param id ID del evento a modificar.
          * @param time Nuevo tiempo para el evento.
-         * @param routine Puntero a la rutina que se debe ejecutar en el evento.
+         * @param timedObj Objeto derivado de Timed, con la implementación del método timeExec.
          * @return true si se pudo modificar el evento, false si no.
          * @ingroup SCHEDULING
          */
-        bool changeEvent(uint8_t id, uint16_t time, void (*routine)(void));
+        bool changeEvent(uint8_t id, uint16_t time, imos::Timed* timedObj);
         /**
-         * @brief Burra el evento con la id pasada por parámetro.
+         * @brief Borra el evento con la id pasada por parámetro.
          * @param id ID del evento a eliminar de la lista de eventos.
          * @return true si se pudo borrar el elemento, false si no se encontró el elemento.
          * @ingroup SCHEDULING
          */
         bool delEvent(uint8_t id);
     
-        #ifdef __DEBUG__
-        public:
-        /**
-         * @brief Imprime por la terminal serie la lista de eventos...
-         * @todo borrar esta función cuando ya esté depurado
-         * @ingroup SCHEDULING
-         */
-        void debugListOfEvents(void);
-        #endif
     
     // Constructores y destructores:
     private:
